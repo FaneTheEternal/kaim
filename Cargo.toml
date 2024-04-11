@@ -1,0 +1,21 @@
+[package]
+name = "kaim"
+version = "0.1.0"
+edition = "2021"
+
+[profile.full]
+inherits = "release"
+strip = true
+lto = true
+codegen-units = 1
+
+[lib]
+name = "kaim"
+crate-type = ["cdylib"]
+
+[dependencies]
+lazy_static = "1.4.0"
+
+[dependencies.pyo3]
+version = "0.21.1"
+features = ["extension-module"]
