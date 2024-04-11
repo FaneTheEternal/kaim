@@ -14,7 +14,13 @@ name = "kaim"
 crate-type = ["cdylib"]
 
 [dependencies]
+kaim-types = { path = "../kaim-types" }
+
 lazy_static = "1.4.0"
+bitflags = "2.5.0"
+serde = { version = "1.0.197", features = ["derive"] }
+ron = "0.8.1"
+derive_more = "0.99.17"
 
 [dependencies.pyo3]
 version = "0.21.1"

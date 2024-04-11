@@ -1,8 +1,12 @@
+use derive_more::Deref;
+use kaim_types::Entry;
+use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 
-#[pyclass]
+#[pyclass(subclass)]
 pub struct Profiler {
-    entries: Vec<ProfileEntry>,
+    pub entries: Vec<Entry>,
+    pub stack: Vec<Entry>,
 }
 
 #[pymethods]
@@ -11,17 +15,46 @@ impl Profiler {
     fn new() -> Self {
         Profiler {
             entries: vec![],
+            stack: vec![],
         }
     }
 
-    fn start(mut slf: PyRefMut<'_, Self>) -> PyResult<()> {
+    fn start(slf: PyRef<'_, Self>) -> PyResult<()> {
         crate::ffi::set_profiler(slf.as_ptr());
         Ok(())
     }
+
+    fn get_entries(&self) -> Vec<PyEntry> {
+        self.entries.iter()
+            .map(|raw| PyEntry(raw.clone()))
+            .collect()
+    }
+
+    fn dump(&self) -> PyResult<String> {
+        ron::to_string(&self.entries)
+            .map_err(|e| PyRuntimeError::new_err(e.to_string()))
+    }
 }
 
-struct ProfileEntry {
-    id: usize,
-    name: String,
-    duration: usize,
+
+#[derive(Deref)]
+#[pyclass]
+pub struct PyEntry(Entry);
+
+#[pymethods]
+impl PyEntry {
+    #[getter]
+    fn id(&self) -> usize { self.id }
+
+    #[getter]
+    fn kind(&self) -> String { format!("{:?}", self.kind) }
+
+    #[getter]
+    fn called(&self) -> String { self.called.clone() }
+
+    #[getter]
+    fn info(&self) -> String { self.info.clone() }
+
+    #[getter]
+    fn time(&self) -> (f64, f64) { self.time }
 }
